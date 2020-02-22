@@ -48,10 +48,10 @@ Evaluatable () {};
 };
 
 class Variable : public Evaluatable {
-    int value;
+    int value; // delete
     string name;
 public :
-    Variable (int num) {
+    Variable (int num) { //delete
         value = num;
     }
     Variable (string rename) {
@@ -59,13 +59,15 @@ public :
         value = 0;
     }
     int getValue () {
-        return value;
+        return value;// delete
+        return table[value]
     }
     void setValue (int num) {
         value = num;
+        //table[name] = value
     }
     void print () {
-        cout << value;
+        cout << value; //table[name]
     }
     string getName () {
         return name;
@@ -98,6 +100,7 @@ class Oper : public Lexem {
     OPERATOR opertype;
 public:
     Oper (int op) {
+        //opertype = (OPERATOR)op;
         if (op == 1) {
             opertype =  RBRACKET;
         }
@@ -170,6 +173,7 @@ public:
         return opertype;
     }
     void print() {
+        //OperText[(int)opertype]
         if (opertype == ASSIGN) {
             cout << ":=";
         }
@@ -272,6 +276,8 @@ public:
 
 };
 
+
+// bool std::isalpha(char)
 int isletter (char ch) {
     if (ch <= 'z' && ch >= 'a') {
         return 1;
