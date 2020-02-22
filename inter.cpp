@@ -319,9 +319,12 @@ vector<Lexem *> parseLexem (string row) {
                 while (i != row.size() && isletter(row[i])) {
                     current_string += row[i];
                     i++;
-                } 
-                table[current_string] = 0;
+                }
                 infix.push_back(((Evaluatable *) new Variable (current_string)));
+                if(table[current_string] == 0){ 
+                    infix.top()->setValue(0);
+                }
+                else { table[current_string] = infix.top()->getValue(); }
                 i--;
             }
         }
