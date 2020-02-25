@@ -9,7 +9,7 @@ enum LEXEM_TYPES {
 };
 
 enum OPERATOR {
-    RBRACKET, LBRACKET,
+    LBRACKET, RBRACKET,
     ASSIGN, 
     OR, AND, BITOR, XOR, BITAND, EQ, NEQ, LEQ, LT, GEQ, GT, SHL, SHR, MOD,
     PLUS , MINUS,
@@ -22,7 +22,7 @@ int PRIORITY [] = {
     0,
     1, 2, 3, 4, 5, 6, 6, 7, 7, 7, 7,8, 8, 10,
     9, 9,
-    10 , 10, -1 
+    10 , 10, -1, -1 
 };
 
 string OPERTEXT [] = {
@@ -31,10 +31,13 @@ string OPERTEXT [] = {
     "or", "and", "|", "^", "&", "==", "!=", "<=", "<", ">=", ">", "<<", ">>", "%",
     "+" , "-" ,
     "*", "/",
-    "print"
+    "print", "goto"
 };
 
+map<string, int> table;
+
 class Lexem {
+
 public: 
     Lexem () {};
     virtual void print () = 0;
@@ -48,26 +51,20 @@ Evaluatable () {};
 };
 
 class Variable : public Evaluatable {
-    int value; // delete
     string name;
 public :
-    Variable (int num) { //delete
-        value = num;
-    }
+    
     Variable (string rename) {
         name = rename;
-        value = 0;
     }
     int getValue () {
-        return value;// delete
-        return table[value]
+        return table[name];
     }
     void setValue (int num) {
-        value = num;
-        //table[name] = value
+        table[name] = num;
     }
     void print () {
-        cout << value; //table[name]
+        cout << table[name]; 
     }
     string getName () {
         return name;
@@ -77,7 +74,6 @@ public :
     }
 };
 
-map<string, int> table;
 
 class Number : public Evaluatable {
     int value;
@@ -100,107 +96,13 @@ class Oper : public Lexem {
     OPERATOR opertype;
 public:
     Oper (int op) {
-        //opertype = (OPERATOR)op;
-        if (op == 1) {
-            opertype =  RBRACKET;
-        }
-        if (op == 0) {
-            opertype = LBRACKET;
-        }
-        
-        if (op == 2) {
-            opertype = ASSIGN;
-        }
-        if (op == 3) {
-            opertype = OR;
-        }
-        if (op == 4) {
-            opertype = AND;
-        }
-        if (op == 5) {
-            opertype = BITOR;
-        }
-        if (op == 6) {
-            opertype = XOR;
-        }
-        if (op == 7) {
-            opertype = BITAND;
-        }
-        if (op == 8) {
-            opertype = EQ;
-        }
-        if (op == 9) {
-            opertype = NEQ;
-        }
-        if (op == 10) {
-            opertype = LEQ;
-        }
-        if (op == 11) {
-            opertype = LT;
-        }
-        if (op == 12) {
-            opertype = GEQ;
-        }
-        if (op == 13) {
-            opertype = GT;
-        }
-        if (op == 14) {
-            opertype = SHL;
-        }
-        if (op == 15) {
-            opertype = SHR;
-        }
-        if (op == 16) {
-            opertype = MOD;
-        }
-        if (op == 17) {
-            opertype = PLUS;
-        }
-        if (op == 18) {
-            opertype = MINUS;
-        }
-        if (op == 19) {
-            opertype = MULT;
-        }
-        if (op == 20) {
-            opertype = DIV;
-        }
-        if (op == 22) {
-            opertype == PRINT;
-        }
+        opertype = (OPERATOR)op;
     }
     OPERATOR getType() {
         return opertype;
     }
     void print() {
-        //OperText[(int)opertype]
-        if (opertype == ASSIGN) {
-            cout << ":=";
-        }
-        if (opertype == MINUS) {
-            cout << "-";
-        }
-        if (opertype == PLUS) {
-            cout << "+";
-        }
-        if (opertype == MULT) {
-            cout <<  "*";
-        }
-        if(opertype == LBRACKET) {
-            cout <<  "(";
-        }
-        if (opertype == RBRACKET) {
-            cout <<  ")";
-        }
-        if (opertype == DIV) {
-            cout << "/";
-        }
-        if (opertype == BITOR) {
-            cout << "|";
-        }
-        if (opertype == PRINT) {
-            cout << "print";
-        }
+        cout << OPERTEXT[(int)opertype];
     }
     int getValue(Evaluatable *operand1, Evaluatable *operand2) {
         if (opertype == PLUS) {
@@ -277,15 +179,10 @@ public:
 };
 
 
+
+
 // bool std::isalpha(char)
-int isletter (char ch) {
-    if (ch <= 'z' && ch >= 'a') {
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
+
 
 vector<Lexem *> parseLexem (string row) {
     int current_int = 0;
@@ -321,16 +218,16 @@ vector<Lexem *> parseLexem (string row) {
                 i--;
             }  else if (row[i] == ' ') {
                 continue;
-            } else if (isletter(row[i])) {
-                while (i != row.size() && isletter(row[i])) {
+            } else if (isalpha(row[i])) {
+                while (i != row.size() && isalpha(row[i])) {
                     current_string += row[i];
                     i++;
                 }
                 infix.push_back(((Evaluatable *) new Variable (current_string)));
                 if(table[current_string] == 0){ 
-                    infix.top()->setValue(0);
-                }
-                else { table[current_string] = infix.top()->getValue(); }
+                    ((Variable *)infix[infix.size() - 1])->setValue(0);
+                } 
+                else { table[current_string] = ((Variable *)infix[infix.size() - 1])->getValue(); }
                 i--;
             }
         }
@@ -345,7 +242,9 @@ vector <Lexem *> buildPostfix (vector <Lexem *>  infix) {
         if (elem->check_type() == NUMBER) {
             postfix.push_back(elem);
         } else if (elem->check_type() == OPER) {
-            if (((Oper*)elem)->getType() == RBRACKET) {
+            if (operators.empty()) {
+                operators.push((Oper *)elem);
+            } else if (((Oper*)elem)->getType() == RBRACKET) {
                 postfix.push_back(operators.top());
                 operators.pop(); 
                 while(((Oper *)operators.top())->getType() != LBRACKET) {
@@ -353,10 +252,8 @@ vector <Lexem *> buildPostfix (vector <Lexem *>  infix) {
                         operators.pop();
                 }
                 operators.pop();
-            } else if (operators.empty()) {
-                operators.push((Oper *)elem);
-            } else if (     (operators.top()->getPriority() <= ((Oper *)elem)->getPriority()) ||      
-                            (((Oper *)elem)->getType() == LBRACKET)) { 
+            } else if (     ((((Oper *)elem)->getType() == LBRACKET) || 
+                            operators.top()->getPriority() <= ((Oper *)elem)->getPriority())) { 
                 operators.push ((Oper *)elem);
             } else {
                 postfix.push_back(operators.top());
@@ -375,7 +272,7 @@ vector <Lexem *> buildPostfix (vector <Lexem *>  infix) {
     return postfix;
 }
 
-int evaluatePostfix ( vector <Lexem *> postfix) {
+int evaluatePostfix (vector <Lexem *> postfix) {
     stack <Evaluatable *> numbers;
     Evaluatable *operand1;
     Evaluatable *operand2;
@@ -390,7 +287,6 @@ int evaluatePostfix ( vector <Lexem *> postfix) {
             int result = ((Oper *)elem)->getValue(operand1, operand2);
             numbers.push(new Number(result));
         } else if (elem->check_type() == OPER && ((Oper *)elem)->getType() == PRINT) {
-            cout << "T" << endl;
             operand1 = numbers.top();
             numbers.pop();
             ((Oper *)elem)->getValue(operand1);
