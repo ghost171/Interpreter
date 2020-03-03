@@ -2,14 +2,14 @@
 
 This porject - is interpreter from C++ language to another "Basic" language that has Pascal syntax.
 
-#Possibilities
+# Possibilities
 
-##Variables
+## Variables
 
 It can allocates memory for variables and assign them to rvalue or lvalue. 
 Variables contains letters of latin alphabet.
 
-##Print
+## Print
   Print can output the values of variables, numbers and expressions.
   
 Example:
@@ -21,7 +21,7 @@ The result of the program:
 
   2
 
-##Goto
+## Goto
 
 You can jump through the code with "goto". You can write "goto" and then the Name of mark that you want jump. 
 After that you must write this mark and then the colon: ":". The program jump to the row of code that you marked.
@@ -36,7 +36,7 @@ Example:
 The result of the program:
   1
 
-##Cycles
+## Cycles
 
 You can use cycles with "while" lexem. It had been executing a bit of code that wrapped into begin and end of "while".
 The begin of "while" marked as then.
@@ -52,7 +52,7 @@ The result of the program:
 
   6
 
-##The conditions
+## The conditions
 
 You can use conditions with lexem "if". When you wrote "if" you must must write the condition.
 When you had written the condition you must write "then" and after that, wrote the piece of code that executed when that condition is true. 
