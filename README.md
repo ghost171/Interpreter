@@ -104,5 +104,42 @@ If priority of this operator greater than operator in the top the stack we push 
 For numbers we have "Number" class that contain value of this number. 
 When number parsing we supporting by condition that marks number as string of digits.
 ### Variables realization
-
-
+Variables implemented in  class Variable. This class have methods for getting values of declared variables.
+There is Variable table(Vtable) to moved their values and names into this.
+### Goto realizetion
+For this task was created a table with rows and names of marks that tell us where we have to go.
+In EvaluatePostfix() the program returns the number of row that we have to go. 
+If on the row haven't been a "goto" operator this function just return row + 1. 
+But if "goto" contains in the row, this function return number of row, that contains mark denoted row that goto want to go.
+Also, we have initLabels() to initialize this rows. 
+     
+     void initLabels ( std::vector <Lexem *> &infix , int row ) {
+         for (int i = 1; i < (int)infix.size (); i++) {
+             if (    (infix[i - 1]->check_type() == VARIABLE) &&
+                     (infix[i]->check_type() == OPER) ) {
+                 Variable * lexemvar = ( Variable *) infix [i - 1];
+                 Oper * lexemop = ( Oper *) infix[i];
+                 if (lexemop->getType() == COLON) {
+                     labels[lexemvar->getName()] = row;
+                     infix [i - 1] = nullptr ;
+                     infix [i] = nullptr ;
+                     i++;
+                 }
+             }
+         }
+     }
+This function is used to go to the current row:
+         
+         void GoinGotoAndLabel (Variable *lexemvar, std::stack<Oper *> &stack) {
+              if (stack.top()->getType() == GOTO) {
+                  Goto *lexemgoto = (Goto *)stack.top();
+                  lexemgoto->setRow(lexemvar->getName());
+                   }
+               }
+### Condition realization
+We use goto to implement this. When the program see count the result of condition it go to the row with "then" operator
+or , if the result of the condition is false to the row with "else" Operator.
+### Cycles realization
+We use goto for it, like in condition realization, 
+because "while" is an operator that must executed a piece of code before 
+it found false result of the condition after "while" operator.
