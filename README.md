@@ -1,6 +1,9 @@
 # Description
 
 This porject - is interpreter from C++ language to another "Basic" language that has Pascal syntax.
+//interpreter with Pascal-like language
+
+Implemented in C++.
 
 # Possibilities
 
@@ -15,7 +18,7 @@ Example:
     y := x
     print y
     
-The result of the program:
+The result of the program: //Execution result:
     
     2
 
@@ -85,13 +88,15 @@ The result of the program:
     2
 
 # Installation
-    git pull 
+    git pull //git clone https://github.com/ghost171/Interpreter
+    // make install
+    // bin/inter
     cd bin
     ./inter
 # Realization
 ## Steps of interpritating 
 ### Lexem Dividing
-When we get the rows of code we need to convert it to array of Lexems. Lexem can be number, variable or operator. 
+When we get the rows of code we need to convert it to array of Lexems. Lexem can be number, variable or operator. //which are implemented in ParseLexem()
 There are in ParseLexem() function.
 ###  Build Postfix
 IN this step of program we build the postfix by available infix that we get Lexem Dividing step. 
@@ -100,7 +105,7 @@ If that is a number or variable it pushes it in Lexems array.
 If priority of this operator greater than operator in the top the stack we push operator at the top of thge stack in Lexems array, and the start operator in the stack.
 
 ## Realization of types lexems 
-### Numbers realization
+### Numbers realization //implementation
 For numbers we have "Number" class that contain value of this number. 
 When number parsing we supporting by condition that marks number as string of digits.
 ### Variables realization
