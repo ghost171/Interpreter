@@ -1,9 +1,6 @@
 # Description
 
-This porject - is interpreter from C++ language to another "Basic" language that has Pascal syntax.
-//interpreter with Pascal-like language
-
-Implemented in C++.
+This porject - is interpreter with Pascal-like language implemented in C++.
 
 # Possibilities
 
@@ -84,15 +81,13 @@ Example:
       print x
 
 The result of the program:
-  
+
     2
 
 # Installation
-    git pull //git clone https://github.com/ghost171/Interpreter
-    // make install
-    // bin/inter
-    cd bin
-    ./inter
+    git clone https://github.com/ghost171/Interpreter
+     make install
+     bin/inter
 # Realization
 ## Steps of interpritating 
 ### Lexem Dividing
@@ -105,13 +100,13 @@ If that is a number or variable it pushes it in Lexems array.
 If priority of this operator greater than operator in the top the stack we push operator at the top of thge stack in Lexems array, and the start operator in the stack.
 
 ## Realization of types lexems 
-### Numbers realization //implementation
+### Numbers implementation
 For numbers we have "Number" class that contain value of this number. 
 When number parsing we supporting by condition that marks number as string of digits.
-### Variables realization
+### Variables implementation
 Variables implemented in  class Variable. This class have methods for getting values of declared variables.
 There is Variable table(Vtable) to moved their values and names into this.
-### Goto realizetion
+### Goto implementation
 For this task was created a table with rows and names of marks that tell us where we have to go.
 In EvaluatePostfix() the program returns the number of row that we have to go. 
 If on the row haven't been a "goto" operator this function just return row + 1. 
@@ -141,10 +136,10 @@ This function is used to go to the current row:
                   lexemgoto->setRow(lexemvar->getName());
                    }
                }
-### Condition realization
+### Condition implementation
 We use goto to implement this. When the program see count the result of condition it go to the row with "then" operator
 or , if the result of the condition is false to the row with "else" Operator.
-### Cycles realization
+### Cycles implementation
 We use goto for it, like in condition realization, 
 because "while" is an operator that must executed a piece of code before 
 it found false result of the condition after "while" operator.
