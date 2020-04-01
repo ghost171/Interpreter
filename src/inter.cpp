@@ -11,26 +11,26 @@ enum LEXEM_TYPES {
 //This is used for determine what type of operator we have. 
 
 enum OPERATOR {
-    ARRAY_REAL, ARRAY, SQUARELBRACKET, SQUARERBRACKET, IF, THEN, ELSE, ENDIF, WHILE, ENDWHILE,
+    ARRAY, SQUARELBRACKET, SQUARERBRACKET, IF, THEN, ELSE, ENDIF, WHILE, ENDWHILE,
     LBRACKET, RBRACKET, ASSIGN, COLON,
     OR, AND, BITOR, XOR, BITAND, EQ, NEQ, LEQ, LT, GEQ, GT, SHL, SHR, MOD,
     PLUS , MINUS,
     MULT, DIV,
-    PRINT, GOTO
+    PRINT, GOTO, ARRAY_REAL
 };
 
 //This priority of operators in OPERATOR
 int PRIORITY [] = {
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1,-1, 0, -1,
     1, 2, 3, 4, 5, 6, 6, 7, 7, 7, 7,8, 8, 10,
     9, 9,
-    10 , 10, -1, -1
+    10 , 10, -1, -1, -1
 };
 
 //This is used for parsing string on lexesms. If we find substring in this array - we find an operator!. 
 string OPERTEXT [] = {
-    "ARRAY_REAL isn't service word", "array", "[", "]","if", "then", "else", "endif", "while", "endwhile",
+    "array", "[", "]","if", "then", "else", "endif", "while", "endwhile",
     "(", ")", ":=", ":",
     "or", "and", "|", "^", "&", "==", "!=", "<=", "<", ">=", ">", "<<", ">>", "%",
     "+" , "-" ,
@@ -50,17 +50,10 @@ public:
     Lexem () {};
     virtual void print () = 0;
     virtual LEXEM_TYPES check_type () = 0;
+    virtual int getValue() = 0;  //comment for the functionx
 };
 
-//this interface is ised for decalring values that can to return values. It is variables and numbers.
-//Operators hasn't got values.
-class Evaluatable : public Lexem {
-public:
-    Evaluatable () {};
-    virtual int getValue() = 0;
-};
-
-class Pointer : public Evaluatable {
+class Pointer : public Lexem {
 public:
     virtual void setValue(int num) = 0;
 };
@@ -105,7 +98,7 @@ void addArray (string name, int len) {
 
 
 //this class provided numbers work
-class Number : public Evaluatable {
+class Number : public Lexem {
     int value;
 public:
     Number ( int num ) {
@@ -141,12 +134,12 @@ public:
         return opertype;
     }
     void setValue(int num) {}
-    int getValue(Evaluatable *operand1, Evaluatable *operand2) {
+    int getValue(Lexem *operand1, Lexem *operand2) {
         if (opertype == PLUS) {
             return ( operand1->getValue() + operand2->getValue() ); 
         }
         if (opertype == MINUS) {
-            return ( - operand1->getValue() + operand2->getValue() );
+            return ( -operand1->getValue() + operand2->getValue() );
         }
         if (opertype == MULT) {
             return ( operand1->getValue() * operand2->getValue() );
@@ -201,7 +194,7 @@ public:
             return (operand2->getValue() % operand1->getValue());
         }
     }
-    int getValue(Evaluatable *operand) {
+    int getValue(Lexem *operand) {
         if (opertype == PRINT) {
             cout << operand->getValue() << endl;
         }
@@ -253,7 +246,7 @@ public:
     void setValue(int num) {
         Atable[name][index] = num;
     }
-    Array (string name): Oper{0} {
+    Array (string name): Oper{35} {
         opertype = ARRAY_REAL;
         Array::name = name;   
     }
@@ -281,7 +274,7 @@ void initArrays (vector <Lexem *> &infix, int row) {
                 infix[i - 2]->check_type() == OPER && infix[i - 3]->check_type() == VARIABLE) {
                     
                     if (((Oper *)infix[i])->getType() == SQUARERBRACKET && ((Oper *)infix[i - 2])->getType() == SQUARELBRACKET) {
-                        addArray(((Variable *)infix[i - 3])->getName(), ((Evaluatable *)infix[i - 1])->getValue());
+                        addArray(((Variable *)infix[i - 3])->getName(), ((Number *)infix[i - 1])->getValue());
                         infix[i] = nullptr;
                         infix[i - 1] = nullptr;
                         infix[i - 2] = nullptr;
@@ -457,7 +450,6 @@ vector <Lexem *> buildPostfix (vector <Lexem *>  infix) {
             if (operators.empty()) {
                 operators.push((Oper *)elem);
             } else if (((Oper *)elem)->getType() == ARRAY_REAL) {
-                cout << "PRINT" << endl;
                 operators.push((Array *)elem);
             } else if (((Oper *)elem)->getType() == SQUARERBRACKET) {
                 while(((Oper *)operators.top())->getType() != ARRAY_REAL) {
@@ -506,9 +498,9 @@ vector <Lexem *> buildPostfix (vector <Lexem *>  infix) {
 
 //in this function we execute all operations 
 int evaluatePostfix (vector <Lexem *> postfix, int row) {
-    stack <Evaluatable *> numbers;
-    Evaluatable *operand1;
-    Evaluatable *operand2;
+    stack <Lexem *> numbers;
+    Lexem *operand1;
+    Lexem *operand2;
     for (auto elem: postfix) {
         if (elem == NULL) {
             continue;
@@ -522,7 +514,7 @@ int evaluatePostfix (vector <Lexem *> postfix, int row) {
                 Goto *lexemgoto = (Goto *)lexemop;
                 return lexemgoto->getRow();
             } else if (lexemop->getType() == ARRAY_REAL) {
-                Evaluatable *top = (Array *)lexemop;
+                Lexem *top = (Array *)lexemop;
                 ((Array *)lexemop)->setIndex(numbers.top()->getValue());
                 numbers.pop();
                 numbers.push(top);
@@ -548,7 +540,7 @@ int evaluatePostfix (vector <Lexem *> postfix, int row) {
                 numbers.push(new Number(result));
             }
         } else {
-            numbers.push(((Evaluatable *)elem));
+            numbers.push(((Lexem *)elem));
         }
     }
     return row + 1;  
@@ -566,15 +558,13 @@ int main (void) {
         }
         infixLines.push_back(parseLexem(codeline));
     }
-
     for (int row = 0; row < (int)infixLines.size(); ++row) {
         initLabels(infixLines[row], row);
     }
-    
     for (int row = 0; row < (int)infixLines.size(); ++row) {
         initArrays(infixLines[row], row);
     }
-    cout << "INFIX" << endl;
+    /*cout << "INFIX" << endl;
     for (int row = 0; row < (int)infixLines.size(); ++row) {    
         for(auto elem: infixLines[row]) {
             if (elem != NULL) {
@@ -582,14 +572,13 @@ int main (void) {
             }            
         }
         cout << endl;
-    }
+    }*/
 
     initJumps(infixLines);
-
     for (const auto &infix: infixLines) {
         postfixLines.push_back(buildPostfix(infix));
     }
-    cout << "POSTFIX" << endl;
+    /*cout << "POSTFIX" << endl;
     for (int row = 0; row < (int)postfixLines.size(); ++row) {
         for (const auto elem: postfixLines[row]) {
             if (elem != NULL) {
@@ -597,7 +586,7 @@ int main (void) {
             }
         }
         cout << endl;
-    }
+    }*/
     int row = 0;
     while (0 <= row && row < (int)postfixLines.size()) {
         row = evaluatePostfix(postfixLines[row], row);
