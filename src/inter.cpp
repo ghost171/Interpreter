@@ -11,7 +11,7 @@ enum LEXEM_TYPES {
 //This is used for determine what type of operator we have. 
 
 enum OPERATOR {
-    ARRAY_REAL, ARRAY, SQUARERBRACKET, SQUARELBRACKET, IF, THEN, ELSE, ENDIF, WHILE, ENDWHILE,
+    ARRAY_REAL, ARRAY, SQUARELBRACKET, SQUARERBRACKET, IF, THEN, ELSE, ENDIF, WHILE, ENDWHILE,
     LBRACKET, RBRACKET, ASSIGN, COLON,
     OR, AND, BITOR, XOR, BITAND, EQ, NEQ, LEQ, LT, GEQ, GT, SHL, SHR, MOD,
     PLUS , MINUS,
@@ -30,7 +30,7 @@ int PRIORITY [] = {
 
 //This is used for parsing string on lexesms. If we find substring in this array - we find an operator!. 
 string OPERTEXT [] = {
-    "array", "[", "]","if", "then", "else", "endif", "while", "endwhile",
+    "ARRAY_REAL isn't service word", "array", "[", "]","if", "then", "else", "endif", "while", "endwhile",
     "(", ")", ":=", ":",
     "or", "and", "|", "^", "&", "==", "!=", "<=", "<", ">=", ">", "<<", ">>", "%",
     "+" , "-" ,
@@ -56,12 +56,17 @@ public:
 //Operators hasn't got values.
 class Evaluatable : public Lexem {
 public:
-Evaluatable () {};
+    Evaluatable () {};
     virtual int getValue() = 0;
 };
 
+class Pointer : public Evaluatable {
+public:
+    virtual void setValue(int num) = 0;
+};
+
 //This is variable that has name. With name we can get a variable located in Vtable.
-class Variable : public Evaluatable {
+class Variable : public Pointer {
     
 public :
     string name;
@@ -120,7 +125,7 @@ public:
 //this class provided operators work.
 //There is getValue() function that inmplement appropriate operations
 //Also, there is getPriority() that returns approprate priority from PRIORITY[]. 
-class Oper : public Lexem {
+class Oper : public Pointer {
 public:
     OPERATOR opertype;
     Oper (int op) {
@@ -132,7 +137,10 @@ public:
     void print() {
         cout << OPERTEXT[(int)opertype];
     }
-    
+    int getValue() {
+        return opertype;
+    }
+    void setValue(int num) {}
     int getValue(Evaluatable *operand1, Evaluatable *operand2) {
         if (opertype == PLUS) {
             return ( operand1->getValue() + operand2->getValue() ); 
@@ -144,7 +152,7 @@ public:
             return ( operand1->getValue() * operand2->getValue() );
         }
         if (opertype == ASSIGN) {
-            ((Variable *)operand2)-> setValue(operand1->getValue());
+            ((Pointer *)operand2)->setValue(operand1->getValue());
             return operand2->getValue();
         }
         if (opertype == DIV) {
@@ -234,8 +242,19 @@ public:
 //this class provided arrays work.
 class Array : public Oper {
     string name;
+    int index = 0;
 public:
+    void setIndex(int i) {
+        Array::index = i; 
+    }
+    int getValue () {
+        return Atable[name][index];
+    }
+    void setValue(int num) {
+        Atable[name][index] = num;
+    }
     Array (string name): Oper{0} {
+        opertype = ARRAY_REAL;
         Array::name = name;   
     }
     void print () {
@@ -254,18 +273,22 @@ bool inArray (string name) {
 
 //this function provided intialization of arrays.
 void initArrays (vector <Lexem *> &infix, int row) {
-    if (infix[0]->check_type() == OPER || ((Oper *)infix[0])->getType() == ARRAY) { //this provided appeal of the arrays  
+    if (infix[0]->check_type() == OPER && ((Oper *)infix[0])->getType() == ARRAY) { //this provided appeal of the arrays  
         infix[0] = nullptr;
         for (int i = 4; i < (int)infix.size(); i++) {
             if (infix[i]->check_type() == OPER && 
             (   infix[i - 1]->check_type() == NUMBER || infix[i - 1]->check_type() == VARIABLE) && 
-                infix[i - 2]->check_type() == OPER && infix[i - 3]->check_type() == OPER) {
-                    if (((Oper *)infix[i])->getType() == SQUARELBRACKET && ((Oper *)infix[i - 2])->getType() == SQUARERBRACKET) {
+                infix[i - 2]->check_type() == OPER && infix[i - 3]->check_type() == VARIABLE) {
+                    
+                    if (((Oper *)infix[i])->getType() == SQUARERBRACKET && ((Oper *)infix[i - 2])->getType() == SQUARELBRACKET) {
                         addArray(((Variable *)infix[i - 3])->getName(), ((Evaluatable *)infix[i - 1])->getValue());
                         infix[i] = nullptr;
                         infix[i - 1] = nullptr;
                         infix[i - 2] = nullptr;
                         infix[i - 3] = nullptr;
+                    }
+                    else {
+                        infix[i] == nullptr;
                     }
             } else {
                 infix[i] = nullptr;
@@ -276,7 +299,7 @@ void initArrays (vector <Lexem *> &infix, int row) {
             if (infix[i]->check_type() == OPER && 
             (   infix[i - 1]->check_type() == NUMBER || infix[i - 1]->check_type() == VARIABLE) && 
                 infix[i - 2]->check_type() == OPER && infix[i - 3]->check_type() == VARIABLE) {
-                    if (((Oper *)infix[i])->getType() == SQUARELBRACKET && ((Oper *)infix[i - 2])->getType() == SQUARERBRACKET) {
+                    if (((Oper *)infix[i])->getType() == SQUARERBRACKET && ((Oper *)infix[i - 2])->getType() == SQUARELBRACKET) {
                         string name = ((Variable *)infix[i - 3])->getName();
                         if (inArray(name)) {
                             infix[i - 3] = new Array(name);
@@ -433,19 +456,18 @@ vector <Lexem *> buildPostfix (vector <Lexem *>  infix) {
         } else if (elem->check_type() == OPER) {
             if (operators.empty()) {
                 operators.push((Oper *)elem);
-            } else if (((Oper *)elem)->getType() == ARRAY_REAL || ((Oper *)elem)->getType() == SQUARELBRACKET) {
+            } else if (((Oper *)elem)->getType() == ARRAY_REAL) {
+                cout << "PRINT" << endl;
                 operators.push((Array *)elem);
             } else if (((Oper *)elem)->getType() == SQUARERBRACKET) {
-                while(((Oper *)elem)->getType() == ARRAY_REAL) {
-                    if (operators.top()->getType() != SQUARELBRACKET) {
+                while(((Oper *)operators.top())->getType() != ARRAY_REAL) {
                         postfix.push_back(operators.top());
                         operators.pop();
-                    } else {
-                        operators.pop();
-                    }
                 }
                 postfix.push_back(operators.top());
                 operators.pop();
+            } else if (((Oper  *)elem)->getType() == SQUARELBRACKET) {
+                continue;
             } else if (((Oper *)elem)->getType() == ENDIF) {
                 continue;
             } else if (((Oper*)elem)->getType() == RBRACKET) {
@@ -488,7 +510,9 @@ int evaluatePostfix (vector <Lexem *> postfix, int row) {
     Evaluatable *operand1;
     Evaluatable *operand2;
     for (auto elem: postfix) {
-        if (elem->check_type() == NUMBER) {
+        if (elem == NULL) {
+            continue;
+        } else if (elem->check_type() == NUMBER) {
             numbers.push((Number *)elem);
         } else if (elem->check_type() == OPER ) {
             Oper *lexemop = (Oper *)elem;
@@ -497,6 +521,11 @@ int evaluatePostfix (vector <Lexem *> postfix, int row) {
                 lexemop->getType() == ENDWHILE) {
                 Goto *lexemgoto = (Goto *)lexemop;
                 return lexemgoto->getRow();
+            } else if (lexemop->getType() == ARRAY_REAL) {
+                Evaluatable *top = (Array *)lexemop;
+                ((Array *)lexemop)->setIndex(numbers.top()->getValue());
+                numbers.pop();
+                numbers.push(top);
             } else if (lexemop->getType() == THEN) {
                 continue;
             }else if (lexemop->getType() == IF || lexemop->getType() == WHILE) {
@@ -523,6 +552,7 @@ int evaluatePostfix (vector <Lexem *> postfix, int row) {
         }
     }
     return row + 1;  
+    
 }
 
 int main (void) {
@@ -536,9 +566,11 @@ int main (void) {
         }
         infixLines.push_back(parseLexem(codeline));
     }
+
     for (int row = 0; row < (int)infixLines.size(); ++row) {
         initLabels(infixLines[row], row);
     }
+    
     for (int row = 0; row < (int)infixLines.size(); ++row) {
         initArrays(infixLines[row], row);
     }
