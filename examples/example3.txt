@@ -1,0 +1,4 @@
+x:=1
+goto L
+x := x + 2
+L: print x
