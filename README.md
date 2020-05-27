@@ -15,7 +15,7 @@ Example:
     y := x
     print y
     
-The result of the program: //Execution result:
+The result of the program:
     
     2
 
