@@ -98,8 +98,8 @@ You can make operations with array elements. For example:
 
 # Installation
     git clone https://github.com/ghost171/Interpreter
-     make install
-     bin/inter
+    make
+    bin/inter
 # Realization
 ## Steps of interpritating 
 ### Lexem Dividing
