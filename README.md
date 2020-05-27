@@ -84,6 +84,18 @@ The result of the program:
 
     2
 
+## Arrays
+
+You can declare arrays with service word var. For example:
+     
+     var a[2]
+where, a is name of your declared array , 2- is a memory that you need your array.
+
+You can make operations with array elements. For example:
+
+     a[0] := 2
+     a[1] := a[1] + a[0]
+
 # Installation
     git clone https://github.com/ghost171/Interpreter
      make install
