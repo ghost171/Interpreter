@@ -100,7 +100,7 @@ You can make operations with array elements. For example:
     git clone https://github.com/ghost171/Interpreter
     make
     bin/inter
-# Realization
+# Implementation
 ## Steps of interpritating 
 ### Lexem Dividing
 When we get the rows of code we need to convert it to array of Lexems. Lexem can be number, variable or operator. //which are implemented in ParseLexem()
@@ -111,7 +111,7 @@ We have operators stack and when the program see the operator it pushes this on 
 If that is a number or variable it pushes it in Lexems array. 
 If priority of this operator greater than operator in the top the stack we push operator at the top of thge stack in Lexems array, and the start operator in the stack.
 
-## Realization of types lexems 
+## Implementation of types lexems 
 ### Numbers implementation
 For numbers we have "Number" class that contain value of this number. 
 When number parsing we supporting by condition that marks number as string of digits.
